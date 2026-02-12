@@ -1,0 +1,34 @@
+name = "my-journal"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[[durable_objects.bindings]]
+name = "JOURNAL_SESSION"
+class_name = "JournalSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["JournalSession"]
+
+[[r2_buckets]]
+binding = "JOURNAL_BUCKET"
+bucket_name = "my-journal-archive"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-journal-db"
+database_id = "6078a7fa-95bc-49b0-b0a8-f882e8ac9c00"
+
+[route]
+pattern = "journal.maesoser.me/*"
+zone_name = "maesoser.me"
+
+[assets]
+directory = "static"
+binding = "ASSETS"

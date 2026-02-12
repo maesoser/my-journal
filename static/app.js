@@ -1,0 +1,253 @@
+const chatContainer = document.getElementById('chat-container');
+const chatForm = document.getElementById('chat-form');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const finalizeBtn = document.getElementById('finalize-btn');
+const tabJournal = document.getElementById('tab-journal');
+const tabArchive = document.getElementById('tab-archive');
+const journalView = document.getElementById('journal-view');
+const archiveView = document.getElementById('archive-view');
+const archiveList = document.getElementById('archive-list');
+const archiveContent = document.getElementById('archive-content');
+const sessionIdEl = document.getElementById('session-id');
+
+let messages = [];
+
+let toastContainer = document.getElementById('toast-container');
+if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 200);
+    }, duration);
+}
+
+const today = new Date().toISOString().split('T')[0];
+sessionIdEl.textContent = 'Session: ' + today;
+
+function scrollToBottom() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function addMessage(content, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message w-full flex ' + (isUser ? 'justify-end' : 'justify-start');
+    
+    const label = isUser ? 'You' : 'Journal AI';
+    const labelClass = isUser ? 'text-right' : 'text-left';
+    
+    const bubbleClass = isUser 
+    ? 'bg-black text-white border border-black' 
+    : 'bg-[#F9FAFB] text-[#212934] border border-[#D1D5DB]';
+    
+    messageDiv.innerHTML = `
+    <div class="flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}">
+        <span class="text-xs font-semibold text-gray-900 uppercase ${labelClass}">${label}</span>
+        <div class="${bubbleClass} p-3 rounded-[4px] text-[14px] leading-relaxed shadow-sm">
+        ${escapeHtml(content)}
+        </div>
+    </div>
+    `;
+    
+    chatContainer.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'message w-full flex justify-start';
+    typingDiv.innerHTML = `
+    <div class="flex flex-col gap-1 max-w-[85%] items-start">
+        <span class="text-xs font-semibold text-gray-900 uppercase">Journal AI</span>
+        <div class="bg-[#F9FAFB] border border-[#D1D5DB] p-4 rounded-[4px] inline-flex gap-1.5 items-center h-[46px]">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        </div>
+    </div>
+    `;
+    chatContainer.appendChild(typingDiv);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const typingDiv = document.getElementById('typing-indicator');
+    if (typingDiv) {
+    typingDiv.remove();
+    }
+}
+
+async function sendMessage(content) {
+    if (!content.trim()) return;
+
+    addMessage(content, true);
+    messages.push({ role: 'user', content });
+    
+    userInput.value = '';
+    userInput.disabled = true;
+    sendBtn.disabled = true;
+    
+    showTypingIndicator();
+
+    try {
+    const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages }),
+    });
+
+    const data = await response.json();
+    
+    hideTypingIndicator();
+
+    if (data.error) {
+        addMessage('Error: ' + data.error, false);
+    } else {
+        addMessage(data.reply, false);
+        messages.push({ role: 'assistant', content: data.reply });
+    }
+    } catch (error) {
+    hideTypingIndicator();
+    addMessage('Connection error. Please try again.', false);
+    } finally {
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    userInput.focus();
+    }
+}
+
+async function finalizeDay() {
+    //if (!confirm('This will synthesize today\'s journal and save it to the archive. Continue?')) {
+    //return;
+    //}
+
+    finalizeBtn.disabled = true;
+    finalizeBtn.textContent = 'Processing...';
+
+    try {
+    const response = await fetch('/finalize', { method: 'POST' });
+    const data = await response.json();
+
+    if (data.error) {
+        showToast('Error: ' + data.error, 'error');
+    } else {
+        showToast('Journal saved for ' + data.date, 'success');
+        messages = [];
+        chatContainer.innerHTML = `
+        <div class="message w-full">
+            <div class="flex flex-col gap-1">
+            <span class="text-xs font-semibold text-gray-900 uppercase">System</span>
+            <div class="bg-[#F9FAFB] border border-[#D1D5DB] p-3 rounded-[4px] text-[#212934] text-[14px] leading-relaxed max-w-[85%]">
+                Journal finalized! Start a new entry whenever you're ready.
+            </div>
+            </div>
+        </div>
+        `;
+    }
+    } catch (error) {
+    showToast('Connection error. Please try again.', 'error');
+    } finally {
+    finalizeBtn.disabled = false;
+    finalizeBtn.textContent = 'Save';
+    }
+}
+
+async function loadArchive() {
+    try {
+    const response = await fetch('/archive');
+    const data = await response.json();
+
+    if (data.archives && data.archives.length > 0) {
+        archiveList.innerHTML = data.archives
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .map(a => `
+            <div class="archive-item p-4" data-date="${a.date}">
+            <div class="text-sm font-medium">${a.date}</div>
+            <div class="text-xs text-gray-500">${(a.size / 1024).toFixed(1)} KB</div>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.archive-item').forEach(item => {
+        item.addEventListener('click', () => loadArchiveEntry(item.dataset.date));
+        });
+    } else {
+        archiveList.innerHTML = '<div class="p-4 text-sm text-gray-500">No entries yet</div>';
+    }
+    } catch (error) {
+    archiveList.innerHTML = '<div class="p-4 text-sm text-red-500">Error loading archive</div>';
+    }
+}
+
+async function loadArchiveEntry(date) {
+    document.querySelectorAll('.archive-item').forEach(item => {
+    item.classList.toggle('selected', item.dataset.date === date);
+    });
+
+    archiveContent.innerHTML = '<div class="text-gray-500">Loading...</div>';
+
+    try {
+    const response = await fetch('/archive/entry?date=' + date);
+    const data = await response.json();
+
+    if (data.error) {
+        archiveContent.innerHTML = '<div class="text-red-500">' + data.error + '</div>';
+    } else {
+        archiveContent.innerHTML = marked.parse(data.content);
+    }
+    } catch (error) {
+    archiveContent.innerHTML = '<div class="text-red-500">Error loading entry</div>';
+    }
+}
+
+function switchTab(tab) {
+    if (tab === 'journal') {
+    tabJournal.className = 'tab-active px-6 py-3 text-sm font-semibold';
+    tabArchive.className = 'tab-inactive px-6 py-3 text-sm font-semibold';
+    journalView.classList.remove('hidden');
+    archiveView.classList.add('hidden');
+    } else {
+    tabJournal.className = 'tab-inactive px-6 py-3 text-sm font-semibold';
+    tabArchive.className = 'tab-active px-6 py-3 text-sm font-semibold';
+    journalView.classList.add('hidden');
+    archiveView.classList.remove('hidden');
+    loadArchive();
+    }
+}
+
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage(userInput.value);
+});
+
+finalizeBtn.addEventListener('click', finalizeDay);
+tabJournal.addEventListener('click', () => switchTab('journal'));
+tabArchive.addEventListener('click', () => switchTab('archive'));
+
+const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+const archiveSidebar = document.getElementById('archive-sidebar');
+
+toggleSidebarBtn.addEventListener('click', () => {
+    archiveSidebar.classList.toggle('collapsed');
+});
+
+lucide.createIcons();
+
+userInput.focus();
