@@ -1,0 +1,39 @@
+# Wrangler Configuration for my-journal
+# Copy this file to wrangler.toml and fill in your own values
+
+name = "my-journal"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[triggers]
+crons = ["0 * * * *"]  # Hourly synthesis trigger
+
+[[durable_objects.bindings]]
+name = "JOURNAL_SESSION"
+class_name = "JournalSession"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["JournalSession"]
+
+[[r2_buckets]]
+binding = "JOURNAL_BUCKET"
+bucket_name = "my-journal-archive"  # Create with: npx wrangler r2 bucket create my-journal-archive
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-journal-db"
+database_id = "your-d1-database-id"  # Get this from: npx wrangler d1 create my-journal-db
+
+# Optional: Custom domain routing
+# Uncomment and configure if you want to use a custom domain
+# [route]
+# pattern = "journal.yourdomain.com/*"
+# zone_name = "yourdomain.com"
+
+[assets]
+directory = "static"
+binding = "ASSETS"

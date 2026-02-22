@@ -51,6 +51,24 @@ The AI synthesizes entries into these categories:
 npm install
 ```
 
+### Configuration
+
+1. Copy the example configuration:
+   ```bash
+   cp example.wrangler.toml wrangler.toml
+   ```
+
+2. Create a D1 database and update `wrangler.toml` with the database ID:
+   ```bash
+   npx wrangler d1 create my-journal-db
+   # Copy the database_id from the output into wrangler.toml
+   ```
+
+3. Run D1 migrations:
+   ```bash
+   npx wrangler d1 migrations apply my-journal-db
+   ```
+
 ### Create R2 Bucket
 
 ```bash

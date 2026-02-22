@@ -1,13 +1,17 @@
 import { Hono } from "hono";
 import type { Env } from "./types";
 import { JournalSession } from "./durable-objects/journal-session";
-import { handleChat } from "./handlers/chat";
-import { handleFinalize, handleArchiveList, handleArchiveGet } from "./handlers/archive";
+import { handleChat, handleGetMessages } from "./handlers/chat";
+import { handleFinalize, handleArchiveList, handleArchiveGet, handleArchiveDownload, handleArchiveUpload } from "./handlers/archive";
 import { handleScheduled } from "./handlers/scheduled";
 
 export { JournalSession };
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.get("/messages", async (c) => {
+  return handleGetMessages(c.env);
+});
 
 app.post("/chat", async (c) => {
   return handleChat(c.req.raw, c.env);
@@ -23,6 +27,14 @@ app.get("/archive", async (c) => {
 
 app.get("/archive/entry", async (c) => {
   return handleArchiveGet(c.req.raw, c.env);
+});
+
+app.get("/archive/download", async (c) => {
+  return handleArchiveDownload(c.req.raw, c.env);
+});
+
+app.post("/archive/upload", async (c) => {
+  return handleArchiveUpload(c.req.raw, c.env);
 });
 
 app.get("/*", async (c) => {

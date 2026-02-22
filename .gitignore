@@ -27,3 +27,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Wrangler config (contains personal database IDs and domains)
+wrangler.toml

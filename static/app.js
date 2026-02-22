@@ -102,6 +102,7 @@ async function sendMessage(content) {
     messages.push({ role: 'user', content });
     
     userInput.value = '';
+    userInput.style.height = 'auto';
     userInput.disabled = true;
     sendBtn.disabled = true;
     
@@ -196,12 +197,22 @@ async function loadArchive() {
     }
 }
 
+let currentArchiveDate = null;
+
 async function loadArchiveEntry(date) {
+    currentArchiveDate = date;
+    
     document.querySelectorAll('.archive-item').forEach(item => {
     item.classList.toggle('selected', item.dataset.date === date);
     });
 
     archiveContent.innerHTML = '<div class="text-gray-500">Loading...</div>';
+    
+    // Show action buttons and update date label
+    const archiveActions = document.getElementById('archive-actions');
+    const archiveDateLabel = document.getElementById('archive-date-label');
+    archiveActions.classList.remove('hidden');
+    archiveDateLabel.textContent = date;
 
     try {
     const response = await fetch('/archive/entry?date=' + date);
@@ -237,6 +248,21 @@ chatForm.addEventListener('submit', (e) => {
     sendMessage(userInput.value);
 });
 
+// Auto-resize textarea and handle Enter/Shift+Enter
+userInput.addEventListener('input', () => {
+    userInput.style.height = 'auto';
+    userInput.style.height = Math.min(userInput.scrollHeight, 150) + 'px';
+});
+
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (userInput.value.trim()) {
+            sendMessage(userInput.value);
+        }
+    }
+});
+
 finalizeBtn.addEventListener('click', finalizeDay);
 tabJournal.addEventListener('click', () => switchTab('journal'));
 tabArchive.addEventListener('click', () => switchTab('archive'));
@@ -248,6 +274,64 @@ toggleSidebarBtn.addEventListener('click', () => {
     archiveSidebar.classList.toggle('collapsed');
 });
 
+// Download button handler
+const downloadBtn = document.getElementById('download-btn');
+downloadBtn.addEventListener('click', () => {
+    if (currentArchiveDate) {
+        window.location.href = '/archive/download?date=' + currentArchiveDate;
+    }
+});
+
+// Upload button handler
+const uploadInput = document.getElementById('upload-input');
+uploadInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentArchiveDate) return;
+    
+    const content = await file.text();
+    
+    try {
+        const response = await fetch('/archive/upload?date=' + currentArchiveDate, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: content,
+        });
+        const data = await response.json();
+        
+        if (data.error) {
+            showToast('Error: ' + data.error, 'error');
+        } else {
+            showToast('Journal uploaded successfully', 'success');
+            loadArchiveEntry(currentArchiveDate);
+            loadArchive();
+        }
+    } catch (error) {
+        showToast('Upload failed', 'error');
+    }
+    
+    // Reset input so same file can be uploaded again
+    uploadInput.value = '';
+});
+
 lucide.createIcons();
 
+async function loadMessages() {
+    try {
+        const response = await fetch('/messages');
+        const data = await response.json();
+        
+        if (data.messages && data.messages.length > 0) {
+            chatContainer.innerHTML = '';
+            
+            data.messages.forEach(msg => {
+                addMessage(msg.content, msg.role === 'user');
+                messages.push({ role: msg.role, content: msg.content });
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load messages:', error);
+    }
+}
+
+loadMessages();
 userInput.focus();

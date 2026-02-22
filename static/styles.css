@@ -210,8 +210,9 @@ h2 {
 
 .archive-sidebar {
     width: 16rem;
-    transition: width 0.2s ease-out;
+    transition: width 0.2s ease-out, flex 0.2s ease-out;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .archive-sidebar.collapsed {
@@ -225,4 +226,52 @@ h2 {
 
 .archive-sidebar.collapsed #toggle-sidebar i {
     transform: rotate(180deg);
+}
+
+/* Mobile: sidebar takes full width when expanded */
+@media (max-width: 639px) {
+    .archive-sidebar {
+        width: 100%;
+        flex: 1;
+    }
+    
+    .archive-sidebar.collapsed {
+        width: 3rem;
+        flex: 0 0 3rem;
+    }
+    
+    /* Hide content area when sidebar is expanded on mobile */
+    .archive-sidebar:not(.collapsed) + .flex-1 {
+        display: none;
+    }
+}
+
+.journal-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    font-size: 14px;
+    resize: none;
+    overflow: hidden;
+}
+
+.journal-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.journal-input::placeholder {
+    color: #9CA3AF;
+}
+
+/* Target mobile devices specifically */
+@media screen and (max-width: 768px) {
+  input, 
+  button,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }

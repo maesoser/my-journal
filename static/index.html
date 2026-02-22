@@ -2,8 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>My Journal</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="icon.png">
+  
+  <!-- iOS Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="My Journal">
+  <link rel="apple-touch-icon" href="icon.png">
+  
+  <!-- Theme Color for browsers -->
+  <meta name="theme-color" content="#F9FAFB">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -26,7 +38,6 @@
         <button id="finalize-btn" class="btn-secondary px-4 py-2 text-xs font-semibold uppercase tracking-wide">
           Save
         </button>
-        <span class="status-pill">Active</span>
       </div>
     </div>
 
@@ -48,14 +59,13 @@
       </div>
 
       <div class="border-t border-[#D1D5DB] p-4 bg-white shrink-0">
-        <form id="chat-form" class="flex gap-3">
-          <input
-            type="text"
+        <form id="chat-form" class="flex gap-3 items-end">
+          <textarea
             id="user-input"
             placeholder="Share your thoughts..."
-            class="flex-1 px-4 py-3 border border-[#D1D5DB] rounded-[4px] text-[14px] focus:outline-none focus:border-black focus:ring-1 focus:ring-black placeholder-gray-400"
-            autocomplete="off"
-          />
+            class="flex-1 px-4 py-3 border border-[#D1D5DB] rounded-[4px] text-[14px] focus:outline-none focus:border-black focus:ring-1 focus:ring-black placeholder-gray-400 resize-none overflow-hidden"
+            rows="1"
+          ></textarea>
           <button
             type="submit"
             class="btn-primary px-6 py-3 font-semibold text-[13px] uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
@@ -83,8 +93,20 @@
             <div class="p-4 text-sm text-gray-500">Loading...</div>
           </div>
         </div>
-        <div class="flex-1 overflow-y-auto p-6">
-          <div id="archive-content" class="markdown-content">
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col">
+          <div id="archive-actions" class="hidden mb-4 flex items-center gap-2">
+            <span id="archive-date-label" class="text-sm font-semibold text-gray-700 mr-auto"></span>
+            <button id="download-btn" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Download markdown">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Download</span>
+            </button>
+            <label class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer" title="Upload markdown">
+              <i data-lucide="upload" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Upload</span>
+              <input type="file" id="upload-input" accept=".md" class="hidden" />
+            </label>
+          </div>
+          <div id="archive-content" class="markdown-content flex-1">
             <div class="text-gray-500 text-center py-12">
               Select an entry from the list to view
             </div>

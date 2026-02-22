@@ -77,3 +77,69 @@ export async function handleArchiveGet(
   const content = await object.text();
   return Response.json({ date: dateKey, content });
 }
+
+export async function handleArchiveDownload(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const url = new URL(request.url);
+  const dateKey = url.searchParams.get("date");
+
+  if (!dateKey) {
+    return Response.json({ error: "Date parameter required" }, { status: 400 });
+  }
+
+  const object = await env.JOURNAL_BUCKET.get(`${dateKey}.md`);
+
+  if (!object) {
+    return Response.json(
+      { error: "Journal not found for this date" },
+      { status: 404 }
+    );
+  }
+
+  const content = await object.text();
+  return new Response(content, {
+    headers: {
+      "Content-Type": "text/markdown",
+      "Content-Disposition": `attachment; filename="${dateKey}.md"`,
+    },
+  });
+}
+
+export async function handleArchiveUpload(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const url = new URL(request.url);
+  const dateKey = url.searchParams.get("date");
+
+  if (!dateKey) {
+    return Response.json({ error: "Date parameter required" }, { status: 400 });
+  }
+
+  const content = await request.text();
+
+  if (!content.trim()) {
+    return Response.json({ error: "Empty file" }, { status: 400 });
+  }
+
+  await env.JOURNAL_BUCKET.put(`${dateKey}.md`, content, {
+    httpMetadata: { contentType: "text/markdown" },
+  });
+
+  // Upsert journal entry in D1
+  const size = new TextEncoder().encode(content).length;
+  await env.DB.prepare(
+    `INSERT INTO journal_entries (date, size, updated_at)
+     VALUES (?, ?, datetime('now'))
+     ON CONFLICT(date) DO UPDATE SET size = excluded.size, updated_at = datetime('now')`
+  ).bind(dateKey, size).run();
+
+  return Response.json({
+    success: true,
+    date: dateKey,
+    size,
+    message: "Journal uploaded successfully",
+  });
+}
