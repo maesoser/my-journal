@@ -1,4 +1,5 @@
-import type { Env, Message } from "../types";
+import type { Env, Message, AiTextGenerationInput } from "../types";
+import { runTextGeneration } from "../types";
 import { getSessionId, getTodayDateString } from "../lib/utils";
 
 const CHAT_SYSTEM_PROMPT = `You are a minimal journaling assistant. Your role is to:
@@ -46,7 +47,7 @@ export async function handleChat(
   const storedMessages = await session.getMessages(dateKey);
   const recentMessages = storedMessages.slice(-20);
 
-  const aiResponse = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  const aiResponse = await runTextGeneration(env.AI, "@cf/meta/llama-3.1-8b-instruct", {
     messages: [
       { role: "system", content: CHAT_SYSTEM_PROMPT },
       ...recentMessages.map((m) => ({
@@ -57,8 +58,7 @@ export async function handleChat(
     max_tokens: 256,
   });
 
-  const reply =
-    "response" in aiResponse ? aiResponse.response : String(aiResponse);
+  const reply = aiResponse.response || "";
 
   const assistantMsg: Message = {
     role: "assistant",

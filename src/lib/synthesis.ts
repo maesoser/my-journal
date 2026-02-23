@@ -1,4 +1,5 @@
 import type { Env } from "../types";
+import { runTextGeneration } from "../types";
 
 export const SYNTHESIS_PROMPT = `You are a journal synthesis assistant. Your task is to analyze a day's conversation transcript and organize meaningful content into a structured journal entry.
 
@@ -48,7 +49,7 @@ export async function synthesizeJournal(
   transcript: string,
   dateKey: string
 ): Promise<string> {
-  const response = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  const response = await runTextGeneration(env.AI, "@cf/meta/llama-3.1-8b-instruct", {
     messages: [
       { role: "system", content: SYNTHESIS_PROMPT },
       { role: "user", content: transcript },
@@ -56,8 +57,7 @@ export async function synthesizeJournal(
     max_tokens: 2048,
   });
 
-  const content =
-    "response" in response ? response.response : String(response);
+  const content = response.response || "";
 
   const markdown = `# Journal Entry: ${dateKey}
 
