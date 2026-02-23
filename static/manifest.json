@@ -1,0 +1,20 @@
+{
+  "name": "My Journal",
+  "short_name": "Journal",
+  "description": "Personal journaling app with AI synthesis",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9FAFB",
+  "theme_color": "#F9FAFB",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "lang": "en"
+}
