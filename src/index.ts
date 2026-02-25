@@ -4,6 +4,7 @@ import { JournalSession } from "./durable-objects/journal-session";
 import { handleChat, handleGetMessages } from "./handlers/chat";
 import { handleFinalize, handleArchiveList, handleArchiveGet, handleArchiveDownload, handleArchiveUpload } from "./handlers/archive";
 import { handleScheduled } from "./handlers/scheduled";
+import { handleMigration } from "./handlers/migrate";
 
 export { JournalSession };
 
@@ -35,6 +36,14 @@ app.get("/archive/download", async (c) => {
 
 app.post("/archive/upload", async (c) => {
   return handleArchiveUpload(c.req.raw, c.env);
+});
+
+// Temporary migration route - remove after migration is complete
+// Requires JOURNAL_BUCKET binding in wrangler.toml during migration
+app.post("/migrate", async (c) => {
+  // Cast to include R2 bucket for migration purposes
+  const migrationEnv = c.env as unknown as { JOURNAL_BUCKET: R2Bucket; DB: D1Database };
+  return handleMigration(migrationEnv);
 });
 
 app.get("/*", async (c) => {
