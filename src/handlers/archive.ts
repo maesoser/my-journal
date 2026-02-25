@@ -23,17 +23,16 @@ export async function handleFinalize(
 
   const markdown = await synthesizeJournal(env, transcript, dateKey);
 
-  await env.JOURNAL_BUCKET.put(`${dateKey}.md`, markdown, {
-    httpMetadata: { contentType: "text/markdown" },
-  });
-
-  // Upsert journal entry in D1
+  // Upsert journal entry in D1 with content
   const size = new TextEncoder().encode(markdown).length;
   await env.DB.prepare(
-    `INSERT INTO journal_entries (date, size, updated_at)
-     VALUES (?, ?, datetime('now'))
-     ON CONFLICT(date) DO UPDATE SET size = excluded.size, updated_at = datetime('now')`
-  ).bind(dateKey, size).run();
+    `INSERT INTO journal_entries (date, size, content, updated_at)
+     VALUES (?, ?, ?, datetime('now'))
+     ON CONFLICT(date) DO UPDATE SET
+       size = excluded.size,
+       content = excluded.content,
+       updated_at = datetime('now')`
+  ).bind(dateKey, size, markdown).run();
 
   // We don't want to clear the session because we could keep building today's journal entry
   // await session.clearMessages(dateKey);
@@ -42,13 +41,13 @@ export async function handleFinalize(
     success: true,
     date: dateKey,
     size,
-    message: "Journal synthesized and saved to R2",
+    message: "Journal synthesized and saved to D1",
   });
 }
 
 export async function handleArchiveList(env: Env): Promise<Response> {
   const result = await env.DB.prepare(
-    `SELECT date, size, keywords, created_at, updated_at FROM journal_entries ORDER BY date DESC`
+    `SELECT date, size, created_at, updated_at FROM journal_entries ORDER BY date DESC`
   ).all();
 
   return Response.json({ archives: result.results });
@@ -65,17 +64,18 @@ export async function handleArchiveGet(
     return Response.json({ error: "Date parameter required" }, { status: 400 });
   }
 
-  const object = await env.JOURNAL_BUCKET.get(`${dateKey}.md`);
+  const result = await env.DB.prepare(
+    `SELECT content FROM journal_entries WHERE date = ?`
+  ).bind(dateKey).first<{ content: string }>();
 
-  if (!object) {
+  if (!result || !result.content) {
     return Response.json(
       { error: "Journal not found for this date" },
       { status: 404 }
     );
   }
 
-  const content = await object.text();
-  return Response.json({ date: dateKey, content });
+  return Response.json({ date: dateKey, content: result.content });
 }
 
 export async function handleArchiveDownload(
@@ -89,17 +89,18 @@ export async function handleArchiveDownload(
     return Response.json({ error: "Date parameter required" }, { status: 400 });
   }
 
-  const object = await env.JOURNAL_BUCKET.get(`${dateKey}.md`);
+  const result = await env.DB.prepare(
+    `SELECT content FROM journal_entries WHERE date = ?`
+  ).bind(dateKey).first<{ content: string }>();
 
-  if (!object) {
+  if (!result || !result.content) {
     return Response.json(
       { error: "Journal not found for this date" },
       { status: 404 }
     );
   }
 
-  const content = await object.text();
-  return new Response(content, {
+  return new Response(result.content, {
     headers: {
       "Content-Type": "text/markdown",
       "Content-Disposition": `attachment; filename="${dateKey}.md"`,
@@ -124,17 +125,16 @@ export async function handleArchiveUpload(
     return Response.json({ error: "Empty file" }, { status: 400 });
   }
 
-  await env.JOURNAL_BUCKET.put(`${dateKey}.md`, content, {
-    httpMetadata: { contentType: "text/markdown" },
-  });
-
-  // Upsert journal entry in D1
+  // Upsert journal entry in D1 with content
   const size = new TextEncoder().encode(content).length;
   await env.DB.prepare(
-    `INSERT INTO journal_entries (date, size, updated_at)
-     VALUES (?, ?, datetime('now'))
-     ON CONFLICT(date) DO UPDATE SET size = excluded.size, updated_at = datetime('now')`
-  ).bind(dateKey, size).run();
+    `INSERT INTO journal_entries (date, size, content, updated_at)
+     VALUES (?, ?, ?, datetime('now'))
+     ON CONFLICT(date) DO UPDATE SET
+       size = excluded.size,
+       content = excluded.content,
+       updated_at = datetime('now')`
+  ).bind(dateKey, size, content).run();
 
   return Response.json({
     success: true,
