@@ -92,6 +92,16 @@
               <i data-lucide="panel-left-close" class="w-4 h-4"></i>
             </button>
           </div>
+          <div class="search-box p-3 border-b border-[#D1D5DB]">
+            <div class="relative">
+              <i data-lucide="search" class="search-icon w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input type="text" id="search-input" placeholder="Search journals..." 
+                     class="w-full pl-9 pr-8 py-2 text-sm border border-[#D1D5DB] rounded-[4px] focus:outline-none focus:border-black focus:ring-1 focus:ring-black">
+              <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
           <div id="archive-list" class="divide-y divide-[#D1D5DB]">
             <div class="p-4 text-sm text-gray-500">Loading...</div>
           </div>
