@@ -109,15 +109,33 @@
         <div class="flex-1 overflow-y-auto p-6 flex flex-col">
           <div id="archive-actions" class="hidden mb-4 flex items-center gap-2">
             <span id="archive-date-label" class="text-sm font-semibold text-gray-700 mr-auto"></span>
-            <button id="download-btn" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Download markdown">
-              <i data-lucide="download" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Download</span>
-            </button>
-            <label class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer" title="Upload markdown">
-              <i data-lucide="upload" class="w-4 h-4"></i>
-              <span class="hidden sm:inline">Upload</span>
-              <input type="file" id="upload-input" accept=".md" class="hidden" />
-            </label>
+            <!-- View mode buttons -->
+            <div id="view-mode-actions" class="flex items-center gap-2">
+              <button id="edit-btn" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Edit markdown">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Edit</span>
+              </button>
+              <button id="download-btn" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Download markdown">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Download</span>
+              </button>
+              <label class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer" title="Upload markdown">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Upload</span>
+                <input type="file" id="upload-input" accept=".md" class="hidden" />
+              </label>
+            </div>
+            <!-- Edit mode buttons (hidden by default) -->
+            <div id="edit-mode-actions" class="hidden flex items-center gap-2">
+              <button id="save-edit-btn" class="btn-primary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Save changes">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Save</span>
+              </button>
+              <button id="cancel-edit-btn" class="btn-secondary px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5" title="Cancel editing">
+                <i data-lucide="x" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Cancel</span>
+              </button>
+            </div>
           </div>
           <div id="archive-content" class="markdown-content flex-1">
             <div class="text-gray-500 text-center py-12">
