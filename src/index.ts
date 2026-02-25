@@ -4,6 +4,7 @@ import { JournalSession } from "./durable-objects/journal-session";
 import { handleChat, handleGetMessages } from "./handlers/chat";
 import { handleFinalize, handleArchiveList, handleArchiveGet, handleArchiveDownload, handleArchiveUpload } from "./handlers/archive";
 import { handleScheduled } from "./handlers/scheduled";
+import { handleSearch } from "./handlers/search";
 
 export { JournalSession };
 
@@ -35,6 +36,10 @@ app.get("/archive/download", async (c) => {
 
 app.post("/archive/upload", async (c) => {
   return handleArchiveUpload(c.req.raw, c.env);
+});
+
+app.get("/search", async (c) => {
+  return handleSearch(c.req.raw, c.env);
 });
 
 app.get("/*", async (c) => {

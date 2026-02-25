@@ -269,10 +269,80 @@ tabArchive.addEventListener('click', () => switchTab('archive'));
 
 const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const archiveSidebar = document.getElementById('archive-sidebar');
+const searchInput = document.getElementById('search-input');
+const clearSearchBtn = document.getElementById('clear-search');
+
+let searchTimeout = null;
+let isSearchMode = false;
 
 toggleSidebarBtn.addEventListener('click', () => {
     archiveSidebar.classList.toggle('collapsed');
 });
+
+// Search functionality
+searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    // Show/hide clear button
+    clearSearchBtn.classList.toggle('hidden', query.length === 0);
+    
+    // Debounce search
+    if (searchTimeout) clearTimeout(searchTimeout);
+    
+    if (query.length === 0) {
+        // Clear search, show normal archive list
+        isSearchMode = false;
+        loadArchive();
+        return;
+    }
+    
+    if (query.length < 2) {
+        // Too short, wait for more input
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => searchJournals(query), 300);
+});
+
+clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearchBtn.classList.add('hidden');
+    isSearchMode = false;
+    loadArchive();
+    searchInput.focus();
+});
+
+async function searchJournals(query) {
+    isSearchMode = true;
+    archiveList.innerHTML = '<div class="p-4 text-sm text-gray-500">Searching...</div>';
+    
+    try {
+        const response = await fetch('/search?q=' + encodeURIComponent(query));
+        const data = await response.json();
+        
+        if (data.error) {
+            archiveList.innerHTML = `<div class="p-4 text-sm text-red-500">${data.error}</div>`;
+            return;
+        }
+        
+        if (data.results && data.results.length > 0) {
+            archiveList.innerHTML = data.results.map(r => `
+                <div class="archive-item search-result p-4" data-date="${r.date}">
+                    <div class="text-sm font-medium">${r.date}</div>
+                    <div class="text-xs text-gray-600 mt-1 search-snippet">${r.snippet}</div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.archive-item').forEach(item => {
+                item.addEventListener('click', () => loadArchiveEntry(item.dataset.date));
+            });
+        } else {
+            archiveList.innerHTML = '<div class="p-4 text-sm text-gray-500">No results found</div>';
+        }
+    } catch (error) {
+        archiveList.innerHTML = '<div class="p-4 text-sm text-red-500">Search failed</div>';
+    }
+}
 
 // Download button handler
 const downloadBtn = document.getElementById('download-btn');

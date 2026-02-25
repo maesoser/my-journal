@@ -266,6 +266,37 @@ h2 {
     color: #9CA3AF;
 }
 
+/* Search box styles */
+.search-box {
+    background-color: var(--color-secondary);
+}
+
+.archive-sidebar.collapsed .search-box {
+    display: none;
+}
+
+/* Search result snippet with highlighted matches */
+.search-snippet {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.search-snippet mark {
+    background-color: #FEF08A;
+    color: var(--color-text-main);
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.search-result {
+    background-color: var(--color-secondary);
+}
+
+.search-result:hover {
+    background-color: var(--color-bg-alt);
+}
+
 /* Target mobile devices specifically */
 @media screen and (max-width: 768px) {
   input, 
