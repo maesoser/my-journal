@@ -383,6 +383,167 @@ uploadInput.addEventListener('change', async (e) => {
     uploadInput.value = '';
 });
 
+// Edit mode functionality
+const editBtn = document.getElementById('edit-btn');
+const saveEditBtn = document.getElementById('save-edit-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
+const viewModeActions = document.getElementById('view-mode-actions');
+const editModeActions = document.getElementById('edit-mode-actions');
+
+let isEditMode = false;
+let hasUnsavedChanges = false;
+let originalContent = '';
+let currentRawContent = '';
+
+// Store raw content when loading an entry
+const originalLoadArchiveEntry = loadArchiveEntry;
+loadArchiveEntry = async function(date) {
+    // Exit edit mode if switching entries
+    if (isEditMode && hasUnsavedChanges) {
+        if (!confirm('You have unsaved changes. Discard them?')) {
+            return;
+        }
+    }
+    exitEditMode();
+    
+    currentArchiveDate = date;
+    
+    document.querySelectorAll('.archive-item').forEach(item => {
+        item.classList.toggle('selected', item.dataset.date === date);
+    });
+
+    archiveContent.innerHTML = '<div class="text-gray-500">Loading...</div>';
+    
+    const archiveActions = document.getElementById('archive-actions');
+    const archiveDateLabel = document.getElementById('archive-date-label');
+    archiveActions.classList.remove('hidden');
+    archiveDateLabel.textContent = date;
+
+    try {
+        const response = await fetch('/archive/entry?date=' + date);
+        const data = await response.json();
+
+        if (data.error) {
+            archiveContent.innerHTML = '<div class="text-red-500">' + data.error + '</div>';
+            currentRawContent = '';
+        } else {
+            currentRawContent = data.content;
+            archiveContent.innerHTML = marked.parse(data.content);
+        }
+    } catch (error) {
+        archiveContent.innerHTML = '<div class="text-red-500">Error loading entry</div>';
+        currentRawContent = '';
+    }
+};
+
+function enterEditMode() {
+    if (!currentArchiveDate || !currentRawContent) return;
+    
+    isEditMode = true;
+    hasUnsavedChanges = false;
+    originalContent = currentRawContent;
+    
+    // Switch action buttons
+    viewModeActions.classList.add('hidden');
+    editModeActions.classList.remove('hidden');
+    
+    // Replace content with textarea
+    archiveContent.innerHTML = `<textarea id="edit-textarea" class="edit-textarea">${escapeHtml(currentRawContent)}</textarea>`;
+    
+    const textarea = document.getElementById('edit-textarea');
+    textarea.focus();
+    
+    // Track changes
+    textarea.addEventListener('input', () => {
+        hasUnsavedChanges = textarea.value !== originalContent;
+    });
+}
+
+function exitEditMode() {
+    isEditMode = false;
+    hasUnsavedChanges = false;
+    originalContent = '';
+    
+    // Switch action buttons
+    viewModeActions.classList.remove('hidden');
+    editModeActions.classList.add('hidden');
+}
+
+async function saveEdit() {
+    const textarea = document.getElementById('edit-textarea');
+    if (!textarea || !currentArchiveDate) return;
+    
+    const content = textarea.value;
+    
+    if (!content.trim()) {
+        showToast('Content cannot be empty', 'error');
+        return;
+    }
+    
+    saveEditBtn.disabled = true;
+    cancelEditBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/archive/upload?date=' + currentArchiveDate, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: content,
+        });
+        const data = await response.json();
+        
+        if (data.error) {
+            showToast('Error: ' + data.error, 'error');
+        } else {
+            showToast('Changes saved', 'success');
+            currentRawContent = content;
+            hasUnsavedChanges = false;
+            exitEditMode();
+            archiveContent.innerHTML = marked.parse(content);
+            loadArchive(); // Refresh list (size may have changed)
+        }
+    } catch (error) {
+        showToast('Save failed', 'error');
+    } finally {
+        saveEditBtn.disabled = false;
+        cancelEditBtn.disabled = false;
+    }
+}
+
+function cancelEdit() {
+    if (hasUnsavedChanges) {
+        if (!confirm('Discard unsaved changes?')) {
+            return;
+        }
+    }
+    
+    exitEditMode();
+    archiveContent.innerHTML = marked.parse(currentRawContent);
+}
+
+editBtn.addEventListener('click', enterEditMode);
+saveEditBtn.addEventListener('click', saveEdit);
+cancelEditBtn.addEventListener('click', cancelEdit);
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// Handle tab switching with unsaved changes
+const originalSwitchTab = switchTab;
+switchTab = function(tab) {
+    if (isEditMode && hasUnsavedChanges) {
+        if (!confirm('You have unsaved changes. Discard them?')) {
+            return;
+        }
+        exitEditMode();
+    }
+    originalSwitchTab(tab);
+};
+
 lucide.createIcons();
 
 async function loadMessages() {
