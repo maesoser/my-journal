@@ -3,9 +3,26 @@
     --color-secondary: #FFFFFF;
     --color-success: #28B47C;
     --color-text-main: #212934;
+    --color-text-muted: #6B7280;
     --border-subtle: #D1D5DB;
     --color-bg-alt: #F9FAFB;
     --color-error: #E5484D;
+    --color-selected: #EEF2FF;
+    --color-highlight: #FEF08A;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+    --color-primary: #FFFFFF;
+    --color-secondary: #1A1A1A;
+    --color-success: #34D399;
+    --color-text-main: #E5E7EB;
+    --color-text-muted: #9CA3AF;
+    --border-subtle: #374151;
+    --color-bg-alt: #111111;
+    --color-error: #F87171;
+    --color-selected: #1E3A5F;
+    --color-highlight: #854D0E;
 }
 
 body {
@@ -81,7 +98,7 @@ h2 {
 .typing-dot {
     width: 6px;
     height: 6px;
-    background-color: #6B7280;
+    background-color: var(--color-text-muted);
     border-radius: 50%;
     animation: typing 1.4s infinite ease-in-out;
 }
@@ -101,7 +118,7 @@ h2 {
 
 .tab-inactive {
     border-bottom: 2px solid transparent;
-    color: #6B7280;
+    color: var(--color-text-muted);
 }
 
 .tab-inactive:hover {
@@ -140,7 +157,7 @@ h2 {
 }
 
 .archive-item.selected {
-    background-color: #EEF2FF;
+    background-color: var(--color-selected);
     border-left: 3px solid var(--color-primary);
 }
 
@@ -263,7 +280,7 @@ h2 {
 }
 
 .journal-input::placeholder {
-    color: #9CA3AF;
+    color: var(--color-text-muted);
 }
 
 /* Search box styles */
@@ -282,7 +299,7 @@ h2 {
 }
 
 .search-snippet mark {
-    background-color: #FEF08A;
+    background-color: var(--color-highlight);
     color: var(--color-text-main);
     padding: 0 2px;
     border-radius: 2px;
@@ -325,6 +342,22 @@ h2 {
 .btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.theme-toggle:hover {
+    color: var(--color-text-main);
+    background-color: var(--color-bg-alt);
 }
 
 /* Target mobile devices specifically */
