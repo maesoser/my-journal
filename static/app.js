@@ -53,14 +53,14 @@ function addMessage(content, isUser = false) {
     const label = isUser ? 'You' : 'Journal AI';
     const labelClass = isUser ? 'text-right' : 'text-left';
     
-    const bubbleClass = isUser 
-    ? 'bg-black text-white border border-black' 
-    : 'bg-[#F9FAFB] text-[#212934] border border-[#D1D5DB]';
+    const bubbleStyle = isUser 
+    ? 'background-color: var(--color-primary); color: var(--color-secondary); border: 1px solid var(--color-primary);' 
+    : 'background-color: var(--color-bg-alt); color: var(--color-text-main); border: 1px solid var(--border-subtle);';
     
     messageDiv.innerHTML = `
     <div class="flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}">
-        <span class="text-xs font-semibold text-gray-900 uppercase ${labelClass}">${label}</span>
-        <div class="${bubbleClass} p-3 rounded-[4px] text-[14px] leading-relaxed shadow-sm">
+        <span class="text-xs font-semibold uppercase ${labelClass}" style="color: var(--color-text-main);">${label}</span>
+        <div class="p-3 rounded-[4px] text-[14px] leading-relaxed shadow-sm" style="${bubbleStyle}">
         ${escapeHtml(content)}
         </div>
     </div>
@@ -76,8 +76,8 @@ function showTypingIndicator() {
     typingDiv.className = 'message w-full flex justify-start';
     typingDiv.innerHTML = `
     <div class="flex flex-col gap-1 max-w-[85%] items-start">
-        <span class="text-xs font-semibold text-gray-900 uppercase">Journal AI</span>
-        <div class="bg-[#F9FAFB] border border-[#D1D5DB] p-4 rounded-[4px] inline-flex gap-1.5 items-center h-[46px]">
+        <span class="text-xs font-semibold uppercase" style="color: var(--color-text-main);">Journal AI</span>
+        <div class="p-4 rounded-[4px] inline-flex gap-1.5 items-center h-[46px]" style="background-color: var(--color-bg-alt); border: 1px solid var(--border-subtle);">
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
@@ -155,8 +155,8 @@ async function finalizeDay() {
         chatContainer.innerHTML = `
         <div class="message w-full">
             <div class="flex flex-col gap-1">
-            <span class="text-xs font-semibold text-gray-900 uppercase">System</span>
-            <div class="bg-[#F9FAFB] border border-[#D1D5DB] p-3 rounded-[4px] text-[#212934] text-[14px] leading-relaxed max-w-[85%]">
+            <span class="text-xs font-semibold uppercase" style="color: var(--color-text-main);">System</span>
+            <div class="p-3 rounded-[4px] text-[14px] leading-relaxed max-w-[85%]" style="background-color: var(--color-bg-alt); border: 1px solid var(--border-subtle); color: var(--color-text-main);">
                 Journal finalized! Start a new entry whenever you're ready.
             </div>
             </div>
@@ -181,8 +181,8 @@ async function loadArchive() {
         .sort((a, b) => b.date.localeCompare(a.date))
         .map(a => `
             <div class="archive-item p-4" data-date="${a.date}">
-            <div class="text-sm font-medium">${a.date}</div>
-            <div class="text-xs text-gray-500">${(a.size / 1024).toFixed(1)} KB</div>
+            <div class="text-sm font-medium" style="color: var(--color-text-main);">${a.date}</div>
+            <div class="text-xs" style="color: var(--color-text-muted);">${(a.size / 1024).toFixed(1)} KB</div>
             </div>
         `).join('');
 
@@ -328,8 +328,8 @@ async function searchJournals(query) {
         if (data.results && data.results.length > 0) {
             archiveList.innerHTML = data.results.map(r => `
                 <div class="archive-item search-result p-4" data-date="${r.date}">
-                    <div class="text-sm font-medium">${r.date}</div>
-                    <div class="text-xs text-gray-600 mt-1 search-snippet">${r.snippet}</div>
+                    <div class="text-sm font-medium" style="color: var(--color-text-main);">${r.date}</div>
+                    <div class="text-xs mt-1 search-snippet" style="color: var(--color-text-muted);">${r.snippet}</div>
                 </div>
             `).join('');
             
@@ -350,37 +350,6 @@ downloadBtn.addEventListener('click', () => {
     if (currentArchiveDate) {
         window.location.href = '/archive/download?date=' + currentArchiveDate;
     }
-});
-
-// Upload button handler
-const uploadInput = document.getElementById('upload-input');
-uploadInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file || !currentArchiveDate) return;
-    
-    const content = await file.text();
-    
-    try {
-        const response = await fetch('/archive/upload?date=' + currentArchiveDate, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: content,
-        });
-        const data = await response.json();
-        
-        if (data.error) {
-            showToast('Error: ' + data.error, 'error');
-        } else {
-            showToast('Journal uploaded successfully', 'success');
-            loadArchiveEntry(currentArchiveDate);
-            loadArchive();
-        }
-    } catch (error) {
-        showToast('Upload failed', 'error');
-    }
-    
-    // Reset input so same file can be uploaded again
-    uploadInput.value = '';
 });
 
 // Edit mode functionality
@@ -577,3 +546,41 @@ if ('serviceWorker' in navigator) {
             console.error('SW registration failed:', error);
         });
 }
+
+// Theme toggle functionality
+const themeToggle = document.getElementById('theme-toggle');
+const themeColorMeta = document.getElementById('theme-color-meta');
+
+function getCurrentTheme() {
+    return document.documentElement.getAttribute('data-theme') || 'light';
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update meta theme color
+    themeColorMeta.content = theme === 'dark' ? '#111111' : '#F9FAFB';
+    
+    // Update icon
+    updateThemeIcon(theme);
+}
+
+function updateThemeIcon(theme) {
+    const icon = themeToggle.querySelector('i');
+    if (icon) {
+        icon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+        lucide.createIcons();
+    }
+}
+
+function toggleTheme() {
+    const current = getCurrentTheme();
+    const newTheme = current === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+themeToggle.addEventListener('click', toggleTheme);
+
+// Initialize theme icon on load
+updateThemeIcon(getCurrentTheme());
