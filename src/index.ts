@@ -5,6 +5,7 @@ import { handleChat, handleGetMessages } from "./handlers/chat";
 import { handleFinalize, handleArchiveList, handleArchiveGet, handleArchiveDownload, handleArchiveUpload } from "./handlers/archive";
 import { handleScheduled } from "./handlers/scheduled";
 import { handleSearch } from "./handlers/search";
+import { handleStats } from "./handlers/stats";
 import {
   handleListTasks,
   handleCreateTask,
@@ -48,6 +49,10 @@ app.post("/archive/upload", async (c) => {
 
 app.get("/search", async (c) => {
   return handleSearch(c.req.raw, c.env);
+});
+
+app.get("/stats", async (c) => {
+  return handleStats(c.req.raw, c.env);
 });
 
 // ---- Tasks API ----
