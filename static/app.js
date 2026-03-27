@@ -53,14 +53,14 @@ function addMessage(content, isUser = false) {
     const label = isUser ? 'You' : 'Journal AI';
     const labelClass = isUser ? 'text-right' : 'text-left';
     
-    const bubbleStyle = isUser 
-    ? 'background-color: var(--color-primary); color: var(--color-secondary); border: 1px solid var(--color-primary);' 
-    : 'background-color: var(--color-bg-alt); color: var(--color-text-main); border: 1px solid var(--border-subtle);';
-    
+    const bubbleStyle = isUser
+    ? 'background-color: var(--cf-orange); color: #FFFBF5; border: 1px solid var(--cf-orange); border-radius: 12px 12px 4px 12px;'
+    : 'background-color: var(--cf-bg-300); color: var(--cf-text); border: 1px solid var(--cf-border); border-radius: 12px 12px 12px 4px;';
+
     messageDiv.innerHTML = `
     <div class="flex flex-col gap-1 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}">
-        <span class="text-xs font-semibold uppercase ${labelClass}" style="color: var(--color-text-main);">${label}</span>
-        <div class="p-3 rounded-[4px] text-[14px] leading-relaxed shadow-sm" style="${bubbleStyle}">
+        <span class="text-xs font-medium uppercase tracking-wide ${labelClass}" style="color: var(--cf-text-muted);">${label}</span>
+        <div class="p-3 text-sm leading-relaxed shadow-sm" style="${bubbleStyle}">
         ${escapeHtml(content)}
         </div>
     </div>
@@ -76,8 +76,8 @@ function showTypingIndicator() {
     typingDiv.className = 'message w-full flex justify-start';
     typingDiv.innerHTML = `
     <div class="flex flex-col gap-1 max-w-[85%] items-start">
-        <span class="text-xs font-semibold uppercase" style="color: var(--color-text-main);">Journal AI</span>
-        <div class="p-4 rounded-[4px] inline-flex gap-1.5 items-center h-[46px]" style="background-color: var(--color-bg-alt); border: 1px solid var(--border-subtle);">
+        <span class="text-xs font-medium uppercase tracking-wide" style="color: var(--cf-text-muted);">Journal AI</span>
+        <div class="p-4 inline-flex gap-1.5 items-center h-[46px]" style="background-color: var(--cf-bg-300); border: 1px solid var(--cf-border); border-radius: 12px 12px 12px 4px;">
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
         <div class="typing-dot"></div>
@@ -155,8 +155,8 @@ async function finalizeDay() {
         chatContainer.innerHTML = `
         <div class="message w-full">
             <div class="flex flex-col gap-1">
-            <span class="text-xs font-semibold uppercase" style="color: var(--color-text-main);">System</span>
-            <div class="p-3 rounded-[4px] text-[14px] leading-relaxed max-w-[85%]" style="background-color: var(--color-bg-alt); border: 1px solid var(--border-subtle); color: var(--color-text-main);">
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: var(--cf-text-muted);">System</span>
+            <div class="p-4 text-sm leading-relaxed max-w-[85%]" style="background-color: var(--cf-bg-300); border: 1px solid var(--cf-border); border-radius: 12px; color: var(--cf-text);">
                 Journal finalized! Start a new entry whenever you're ready.
             </div>
             </div>
@@ -560,7 +560,7 @@ function setTheme(theme) {
     localStorage.setItem('theme', theme);
     
     // Update meta theme color
-    themeColorMeta.content = theme === 'dark' ? '#111111' : '#F9FAFB';
+    themeColorMeta.content = theme === 'dark' ? '#0D0D0D' : '#F5F1EB';
     
     // Update icon
     updateThemeIcon(theme);
