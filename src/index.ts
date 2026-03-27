@@ -5,6 +5,14 @@ import { handleChat, handleGetMessages } from "./handlers/chat";
 import { handleFinalize, handleArchiveList, handleArchiveGet, handleArchiveDownload, handleArchiveUpload } from "./handlers/archive";
 import { handleScheduled } from "./handlers/scheduled";
 import { handleSearch } from "./handlers/search";
+import {
+  handleListTasks,
+  handleCreateTask,
+  handleUpdateTask,
+  handleDeleteTask,
+  handleExtractTasks,
+  handleEnrichTask,
+} from "./handlers/tasks";
 
 export { JournalSession };
 
@@ -40,6 +48,37 @@ app.post("/archive/upload", async (c) => {
 
 app.get("/search", async (c) => {
   return handleSearch(c.req.raw, c.env);
+});
+
+// ---- Tasks API ----
+app.get("/tasks", async (c) => {
+  return handleListTasks(c.req.raw, c.env);
+});
+
+app.post("/tasks", async (c) => {
+  return handleCreateTask(c.req.raw, c.env);
+});
+
+app.patch("/tasks/:id", async (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return Response.json({ error: "Invalid id" }, { status: 400 });
+  return handleUpdateTask(c.req.raw, c.env, id);
+});
+
+app.delete("/tasks/:id", async (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return Response.json({ error: "Invalid id" }, { status: 400 });
+  return handleDeleteTask(c.env, id);
+});
+
+app.post("/tasks/extract", async (c) => {
+  return handleExtractTasks(c.req.raw, c.env);
+});
+
+app.post("/tasks/:id/enrich", async (c) => {
+  const id = parseInt(c.req.param("id"), 10);
+  if (isNaN(id)) return Response.json({ error: "Invalid id" }, { status: 400 });
+  return handleEnrichTask(c.env, id);
 });
 
 app.get("/*", async (c) => {
