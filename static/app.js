@@ -363,6 +363,7 @@ let isEditMode = false;
 let hasUnsavedChanges = false;
 let originalContent = '';
 let currentRawContent = '';
+let archiveMDE = null;  // EasyMDE instance for archive editor
 
 // Store raw content when loading an entry
 const originalLoadArchiveEntry = loadArchiveEntry;
@@ -407,24 +408,39 @@ loadArchiveEntry = async function(date) {
 
 function enterEditMode() {
     if (!currentArchiveDate || !currentRawContent) return;
-    
+
     isEditMode = true;
     hasUnsavedChanges = false;
     originalContent = currentRawContent;
-    
+
     // Switch action buttons
     viewModeActions.classList.add('hidden');
     editModeActions.classList.remove('hidden');
-    
-    // Replace content with textarea
-    archiveContent.innerHTML = `<textarea id="edit-textarea" class="edit-textarea">${escapeHtml(currentRawContent)}</textarea>`;
-    
-    const textarea = document.getElementById('edit-textarea');
-    textarea.focus();
-    
+
+    // Inject a bare textarea; EasyMDE will enhance it
+    archiveContent.innerHTML = '<textarea id="edit-textarea"></textarea>';
+
+    archiveMDE = new EasyMDE({
+        element: document.getElementById('edit-textarea'),
+        initialValue: currentRawContent,
+        spellChecker: false,
+        autofocus: true,
+        toolbar: [
+            'bold', 'italic', 'strikethrough', 'heading', '|',
+            'unordered-list', 'ordered-list', 'quote', '|',
+            'link', 'image', '|',
+            'code', 'table', 'horizontal-rule', '|',
+            'preview', 'side-by-side', 'fullscreen', '|',
+            'guide',
+        ],
+        status: ['lines', 'words', 'cursor'],
+        minHeight: '300px',
+        sideBySideFullscreen: false,
+    });
+
     // Track changes
-    textarea.addEventListener('input', () => {
-        hasUnsavedChanges = textarea.value !== originalContent;
+    archiveMDE.codemirror.on('change', () => {
+        hasUnsavedChanges = archiveMDE.value() !== originalContent;
     });
 }
 
@@ -432,18 +448,23 @@ function exitEditMode() {
     isEditMode = false;
     hasUnsavedChanges = false;
     originalContent = '';
-    
+
+    // Destroy EasyMDE instance to avoid stale event listeners
+    if (archiveMDE) {
+        archiveMDE.toTextArea();
+        archiveMDE = null;
+    }
+
     // Switch action buttons
     viewModeActions.classList.remove('hidden');
     editModeActions.classList.add('hidden');
 }
 
 async function saveEdit() {
-    const textarea = document.getElementById('edit-textarea');
-    if (!textarea || !currentArchiveDate) return;
-    
-    const content = textarea.value;
-    
+    if (!currentArchiveDate) return;
+
+    const content = archiveMDE ? archiveMDE.value() : (document.getElementById('edit-textarea')?.value ?? '');
+
     if (!content.trim()) {
         showToast('Content cannot be empty', 'error');
         return;
@@ -484,7 +505,7 @@ function cancelEdit() {
             return;
         }
     }
-    
+
     exitEditMode();
     archiveContent.innerHTML = marked.parse(currentRawContent);
 }

@@ -523,31 +523,101 @@ textarea:focus {
 }
 
 /* ============================================================
-   Edit Textarea
+   Archive EasyMDE Editor
+   Scoped to #archive-content so it doesn't clash with the
+   task-modal EasyMDE overrides defined later in this file.
    ============================================================ */
 
-.edit-textarea {
+#archive-content .EasyMDEContainer {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 100%;
-  min-height: 400px;
-  padding: 1rem;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--cf-text);
-  background-color: var(--cf-bg-200);
-  border: 1px solid var(--cf-border);
-  border-radius: var(--radius-md);
-  resize: vertical;
-  box-sizing: border-box;
-  transition: border-color var(--duration-fast) var(--ease-out),
-              box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.edit-textarea:focus {
-  outline: none;
-  border-color: var(--cf-orange);
-  box-shadow: 0 0 0 3px var(--cf-orange-light);
+#archive-content .editor-toolbar {
+  background-color: var(--cf-bg-100) !important;
+  border: 1px solid var(--cf-border) !important;
+  border-bottom: none !important;
+  border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+  padding: 4px 8px !important;
+  flex-wrap: wrap;
+}
+
+#archive-content .editor-toolbar button {
+  color: var(--cf-text-muted) !important;
+  border-radius: var(--radius-sm) !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+#archive-content .editor-toolbar button:hover,
+#archive-content .editor-toolbar button.active {
+  background: var(--cf-orange-light) !important;
+  color: var(--cf-orange) !important;
+  border-color: transparent !important;
+}
+
+#archive-content .editor-toolbar i.separator {
+  border-color: var(--cf-border) !important;
+}
+
+#archive-content .CodeMirror {
+  background-color: var(--cf-bg-200) !important;
+  color: var(--cf-text) !important;
+  border: 1px solid var(--cf-border) !important;
+  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+  padding: 12px !important;
+  min-height: 360px;
+  height: auto;
+}
+
+#archive-content .CodeMirror-focused {
+  border-color: var(--cf-orange) !important;
+  box-shadow: 0 0 0 3px var(--cf-orange-light) !important;
+}
+
+#archive-content .CodeMirror-scroll {
+  min-height: 360px;
+}
+
+#archive-content .editor-preview,
+#archive-content .editor-preview-side {
+  background-color: var(--cf-bg-200) !important;
+  color: var(--cf-text) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  padding: 16px !important;
+  border: 1px solid var(--cf-border) !important;
+  border-top: none !important;
+}
+
+#archive-content .editor-statusbar {
+  color: var(--cf-text-subtle) !important;
+  font-size: 11px !important;
+  font-family: var(--font-mono) !important;
+  border: 1px solid var(--cf-border) !important;
+  border-top: none !important;
+  background-color: var(--cf-bg-100) !important;
+  border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+  padding: 4px 12px !important;
+}
+
+/* CodeMirror cursor + selection colours */
+#archive-content .CodeMirror-cursor {
+  border-left-color: var(--cf-orange) !important;
+}
+
+#archive-content .CodeMirror-selectedtext {
+  background: rgba(255, 72, 1, 0.15) !important;
+}
+
+/* Side-by-side mode */
+#archive-content .editor-preview-side {
+  border-left: 1px solid var(--cf-border) !important;
 }
 
 /* ============================================================
