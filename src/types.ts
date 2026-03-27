@@ -1,5 +1,54 @@
 import type { JournalSession } from "./durable-objects/journal-session";
 
+// ---- Task types ----
+
+export type TaskCategory = "must-do" | "maybe" | "backlog";
+export type TaskStatus   = "open" | "done" | "removed";
+
+export interface Task {
+  id: number;
+  title: string;
+  notes: string;
+  category: TaskCategory;
+  status: TaskStatus;
+  tags: string;           // comma-separated, e.g. "work,personal"
+  estimate_minutes: number | null;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  source_date: string | null;
+}
+
+export interface TaskCreateInput {
+  title: string;
+  notes?: string;
+  category?: TaskCategory;
+  tags?: string;
+  estimate_minutes?: number | null;
+  due_date?: string | null;
+  source_date?: string | null;
+}
+
+export interface TaskUpdateInput {
+  title?: string;
+  notes?: string;
+  category?: TaskCategory;
+  status?: TaskStatus;
+  tags?: string;
+  estimate_minutes?: number | null;
+  due_date?: string | null;
+}
+
+// AI-extracted task shape returned from the extraction prompt
+export interface ExtractedTask {
+  title: string;
+  category: TaskCategory;
+  tags: string[];
+  estimate_minutes: number | null;
+}
+
+// ---- App env ----
+
 export interface Env {
   JOURNAL_SESSION: DurableObjectNamespace<JournalSession>;
   AI: Ai;

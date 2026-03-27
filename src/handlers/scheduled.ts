@@ -1,6 +1,7 @@
 import type { Env } from "../types";
 import { getTodayDateString } from "../lib/utils";
 import { synthesizeJournal } from "../lib/synthesis";
+import { rolloverTasksToBacklog } from "./tasks";
 
 export async function handleScheduled(env: Env): Promise<void> {
   const dateKey = getTodayDateString();
@@ -28,4 +29,8 @@ export async function handleScheduled(env: Env): Promise<void> {
   ).bind(dateKey, size, markdown).run();
 
   console.log(`Journal synthesized and saved for ${dateKey}`);
+
+  // Roll over any uncompleted daily tasks to backlog
+  await rolloverTasksToBacklog(env);
+  console.log(`Task rollover complete for ${dateKey}`);
 }

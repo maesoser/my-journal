@@ -34,6 +34,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fallback Google Fonts while custom fonts load -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+  <!-- EasyMDE markdown editor (task notes) -->
+  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="styles.css">
@@ -81,21 +84,18 @@
 
     <!-- ---- Tab Bar ---- -->
     <div class="flex border-b shrink-0" style="border-color: var(--cf-border); background-color: var(--cf-bg-100);">
-      <button
-        id="tab-journal"
-        class="tab-active px-6 py-3 text-sm font-medium transition-colors"
-      >Journal</button>
-      <button
-        id="tab-archive"
-        class="tab-inactive px-6 py-3 text-sm font-medium transition-colors"
-      >Archive</button>
+      <button id="tab-journal" class="tab-active px-6 py-3 text-sm font-medium transition-colors">Journal</button>
+      <button id="tab-archive" class="tab-inactive px-6 py-3 text-sm font-medium transition-colors">Archive</button>
+      <button id="tab-tasks"   class="tab-inactive px-6 py-3 text-sm font-medium transition-colors flex items-center gap-1.5">
+        Tasks
+        <span id="tasks-open-count" class="hidden text-xs font-medium px-1.5 py-0.5 rounded-full" style="background:var(--cf-orange-light);color:var(--cf-orange);"></span>
+      </button>
     </div>
 
     <!-- ============================================================
          Journal View
          ============================================================ -->
     <div id="journal-view" class="flex-1 overflow-hidden flex flex-col">
-
       <!-- Chat messages -->
       <div
         id="chat-container"
@@ -105,19 +105,8 @@
         <!-- Initial system message -->
         <div class="message w-full">
           <div class="flex flex-col gap-1">
-            <span
-              class="text-xs font-medium uppercase tracking-wide"
-              style="color: var(--cf-text-muted);"
-            >System</span>
-            <div
-              class="p-4 text-sm leading-relaxed max-w-[85%]"
-              style="
-                background-color: var(--cf-bg-300);
-                border: 1px solid var(--cf-border);
-                border-radius: 12px;
-                color: var(--cf-text);
-              "
-            >
+            <span class="text-xs font-medium uppercase tracking-wide" style="color: var(--cf-text-muted);">System</span>
+            <div class="p-4 text-sm leading-relaxed max-w-[85%]" style="background-color: var(--cf-bg-300); border: 1px solid var(--cf-border); border-radius: 12px; color: var(--cf-text);">
               Hello! I'm your journaling assistant. What's on your mind today?
               Share your thoughts, experiences, or anything you'd like to reflect on.
             </div>
@@ -126,37 +115,19 @@
       </div>
 
       <!-- Input area -->
-      <div
-        class="border-t p-4 shrink-0"
-        style="border-color: var(--cf-border); background-color: var(--cf-bg-100);"
-      >
+      <div class="border-t p-4 shrink-0" style="border-color: var(--cf-border); background-color: var(--cf-bg-100);">
         <form id="chat-form" class="flex gap-3 items-end">
           <textarea
             id="user-input"
             placeholder="Share your thoughts..."
             class="flex-1 px-4 py-3 text-sm focus:outline-none resize-none overflow-hidden"
-            style="
-              border: 1px solid var(--cf-border);
-              border-radius: 12px;
-              background-color: var(--cf-bg-200);
-              color: var(--cf-text);
-              font-family: var(--font-sans);
-              min-height: 48px;
-            "
+            style="border: 1px solid var(--cf-border); border-radius: 12px; background-color: var(--cf-bg-200); color: var(--cf-text); font-family: var(--font-sans); min-height: 48px;"
             rows="1"
           ></textarea>
-          <button
-            type="submit"
-            class="btn-primary px-5 py-3 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            id="send-btn"
-          >
-            Send
-          </button>
+          <button type="submit" class="btn-primary px-5 py-3 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed" id="send-btn">Send</button>
         </form>
         <div class="mt-2 text-center">
-          <p class="text-xs" style="color: var(--cf-text-subtle);">
-            Your journal entries are synthesized hourly and saved as markdown.
-          </p>
+          <p class="text-xs" style="color: var(--cf-text-subtle);">Your journal entries are synthesized hourly and saved as markdown.</p>
         </div>
       </div>
     </div>
@@ -166,146 +137,239 @@
          ============================================================ -->
     <div id="archive-view" class="flex-1 overflow-hidden hidden">
       <div class="flex h-full">
-
         <!-- Sidebar -->
-        <div
-          id="archive-sidebar"
-          class="archive-sidebar border-r overflow-y-auto"
-          style="border-color: var(--cf-border);"
-        >
-          <!-- Sidebar header -->
-          <div
-            class="p-4 border-b flex items-center justify-between"
-            style="border-color: var(--cf-border); background-color: var(--cf-bg-100);"
-          >
-            <h3
-              class="sidebar-title text-sm font-medium"
-              style="color: var(--cf-text);"
-            >Past Entries</h3>
-            <button
-              id="toggle-sidebar"
-              class="p-1.5 rounded-full transition-colors"
-              style="color: var(--cf-text-muted); background: transparent; border: 1px solid transparent;"
-              title="Toggle sidebar"
+        <div id="archive-sidebar" class="archive-sidebar border-r overflow-y-auto" style="border-color: var(--cf-border);">
+          <div class="p-4 border-b flex items-center justify-between" style="border-color: var(--cf-border); background-color: var(--cf-bg-100);">
+            <h3 class="sidebar-title text-sm font-medium" style="color: var(--cf-text);">Past Entries</h3>
+            <button id="toggle-sidebar" class="p-1.5 rounded-full transition-colors" style="color: var(--cf-text-muted); background: transparent; border: 1px solid transparent;" title="Toggle sidebar"
               onmouseover="this.style.borderColor='var(--cf-border)'; this.style.color='var(--cf-text)';"
-              onmouseout="this.style.borderColor='transparent'; this.style.color='var(--cf-text-muted)';"
-            >
+              onmouseout="this.style.borderColor='transparent'; this.style.color='var(--cf-text-muted)';">
               <i data-lucide="panel-left-close" class="w-4 h-4"></i>
             </button>
           </div>
-
-          <!-- Search box -->
-          <div
-            class="search-box p-3 border-b"
-            style="border-color: var(--cf-border);"
-          >
+          <div class="search-box p-3 border-b" style="border-color: var(--cf-border);">
             <div class="relative">
-              <i
-                data-lucide="search"
-                class="search-icon w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2"
-                style="color: var(--cf-text-muted);"
-              ></i>
-              <input
-                type="text"
-                id="search-input"
-                placeholder="Search journals..."
+              <i data-lucide="search" class="search-icon w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--cf-text-muted);"></i>
+              <input type="text" id="search-input" placeholder="Search journals..."
                 class="w-full pl-9 pr-8 py-2 text-sm focus:outline-none"
-                style="
-                  border: 1px solid var(--cf-border);
-                  border-radius: 8px;
-                  background-color: var(--cf-bg-200);
-                  color: var(--cf-text);
-                  font-family: var(--font-sans);
-                "
-              >
-              <button
-                id="clear-search"
-                class="absolute right-2 top-1/2 -translate-y-1/2 hidden"
-                style="color: var(--cf-text-muted); background: none; border: none; cursor: pointer;"
-              >
+                style="border: 1px solid var(--cf-border); border-radius: 8px; background-color: var(--cf-bg-200); color: var(--cf-text); font-family: var(--font-sans);">
+              <button id="clear-search" class="absolute right-2 top-1/2 -translate-y-1/2 hidden" style="color: var(--cf-text-muted); background: none; border: none; cursor: pointer;">
                 <i data-lucide="x" class="w-4 h-4"></i>
               </button>
             </div>
           </div>
-
-          <!-- Archive list -->
-          <div
-            id="archive-list"
-            class="divide-y"
-            style="border-color: var(--cf-border);"
-          >
+          <div id="archive-list" class="divide-y" style="border-color: var(--cf-border);">
             <div class="p-4 text-sm" style="color: var(--cf-text-muted);">Loading...</div>
           </div>
         </div>
 
         <!-- Content area -->
         <div class="flex-1 overflow-y-auto p-6 flex flex-col" style="background-color: var(--cf-bg-200);">
-
-          <!-- Archive actions bar -->
           <div id="archive-actions" class="hidden mb-4 flex items-center gap-2">
-            <span
-              id="archive-date-label"
-              class="text-sm font-medium mr-auto font-mono"
-              style="color: var(--cf-text);"
-            ></span>
-
-            <!-- View mode buttons -->
+            <span id="archive-date-label" class="text-sm font-medium mr-auto font-mono" style="color: var(--cf-text);"></span>
             <div id="view-mode-actions" class="flex items-center gap-2">
-              <button
-                id="edit-btn"
-                class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
-                title="Edit markdown"
-              >
+              <button id="edit-btn" class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" title="Edit markdown">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Edit</span>
               </button>
-              <button
-                id="download-btn"
-                class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
-                title="Download markdown"
-              >
+              <button id="download-btn" class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" title="Download markdown">
                 <i data-lucide="download" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Download</span>
               </button>
             </div>
-
-            <!-- Edit mode buttons (hidden by default) -->
             <div id="edit-mode-actions" class="hidden flex items-center gap-2">
-              <button
-                id="save-edit-btn"
-                class="btn-primary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
-                title="Save changes"
-              >
+              <button id="save-edit-btn" class="btn-primary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" title="Save changes">
                 <i data-lucide="check" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Save</span>
               </button>
-              <button
-                id="cancel-edit-btn"
-                class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
-                title="Cancel editing"
-              >
+              <button id="cancel-edit-btn" class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" title="Cancel editing">
                 <i data-lucide="x" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Cancel</span>
               </button>
             </div>
           </div>
-
-          <!-- Archive markdown content -->
           <div id="archive-content" class="markdown-content flex-1">
-            <div
-              class="text-center py-12 text-sm"
-              style="color: var(--cf-text-muted);"
-            >
-              Select an entry from the list to view
-            </div>
+            <div class="text-center py-12 text-sm" style="color: var(--cf-text-muted);">Select an entry from the list to view</div>
           </div>
-
         </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         Tasks View
+         ============================================================ -->
+    <div id="tasks-view" class="flex-1 overflow-hidden hidden flex flex-col" style="background-color: var(--cf-bg-200);">
+
+      <!-- Tasks toolbar -->
+      <div class="px-6 py-3 border-b flex items-center gap-3 shrink-0 flex-wrap" style="border-color: var(--cf-border); background-color: var(--cf-bg-100);">
+        <!-- Filter pills -->
+        <div class="flex items-center gap-1">
+          <button data-filter="open"   class="task-filter-btn task-filter-active text-xs px-3 py-1.5 rounded-full font-medium transition-all">Open</button>
+          <button data-filter="done"   class="task-filter-btn text-xs px-3 py-1.5 rounded-full font-medium transition-all" style="background:var(--cf-bg-300);color:var(--cf-text-muted);border:1px solid var(--cf-border);">Done</button>
+          <button data-filter="all"    class="task-filter-btn text-xs px-3 py-1.5 rounded-full font-medium transition-all" style="background:var(--cf-bg-300);color:var(--cf-text-muted);border:1px solid var(--cf-border);">All</button>
+        </div>
+        <div class="flex-1"></div>
+        <!-- Actions -->
+        <button id="extract-tasks-btn" class="btn-secondary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5" title="Extract tasks from today's journal">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Extract from journal</span>
+        </button>
+        <button id="new-task-btn" class="btn-primary px-3 py-1.5 text-xs font-medium flex items-center gap-1.5">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>New task</span>
+        </button>
+      </div>
+
+      <!-- Three-column board -->
+      <div class="flex-1 overflow-hidden grid grid-cols-1 sm:grid-cols-3 divide-x" style="border-color: var(--cf-border);">
+
+        <!-- Must-Do column -->
+        <div class="task-column flex flex-col overflow-hidden" data-category="must-do">
+          <div class="px-4 py-3 border-b flex items-center justify-between shrink-0" style="border-color: var(--cf-border);">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background: var(--cf-orange);"></span>
+              <h3 class="text-sm font-medium" style="color: var(--cf-text);">Must-Do</h3>
+              <span class="task-col-count text-xs px-1.5 py-0.5 rounded-full font-mono" style="background:var(--cf-orange-light);color:var(--cf-orange);">0</span>
+            </div>
+            <button class="col-add-btn p-1 rounded-full transition-colors" data-category="must-do" title="Add task" style="color:var(--cf-text-muted);border:none;background:transparent;cursor:pointer;"
+              onmouseover="this.style.color='var(--cf-orange)'" onmouseout="this.style.color='var(--cf-text-muted)'">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="task-card-list flex-1 overflow-y-auto p-3 space-y-2" data-category="must-do"></div>
+        </div>
+
+        <!-- Maybe column -->
+        <div class="task-column flex flex-col overflow-hidden" data-category="maybe">
+          <div class="px-4 py-3 border-b flex items-center justify-between shrink-0" style="border-color: var(--cf-border);">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background: #EAB308;"></span>
+              <h3 class="text-sm font-medium" style="color: var(--cf-text);">Maybe</h3>
+              <span class="task-col-count text-xs px-1.5 py-0.5 rounded-full font-mono" style="background:rgba(234,179,8,0.1);color:#EAB308;">0</span>
+            </div>
+            <button class="col-add-btn p-1 rounded-full transition-colors" data-category="maybe" title="Add task" style="color:var(--cf-text-muted);border:none;background:transparent;cursor:pointer;"
+              onmouseover="this.style.color='var(--cf-orange)'" onmouseout="this.style.color='var(--cf-text-muted)'">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="task-card-list flex-1 overflow-y-auto p-3 space-y-2" data-category="maybe"></div>
+        </div>
+
+        <!-- Backlog column -->
+        <div class="task-column flex flex-col overflow-hidden" data-category="backlog">
+          <div class="px-4 py-3 border-b flex items-center justify-between shrink-0" style="border-color: var(--cf-border);">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" style="background: var(--cf-text-subtle);"></span>
+              <h3 class="text-sm font-medium" style="color: var(--cf-text);">Backlog</h3>
+              <span class="task-col-count text-xs px-1.5 py-0.5 rounded-full font-mono" style="background:var(--cf-bg-300);color:var(--cf-text-muted);">0</span>
+            </div>
+            <button class="col-add-btn p-1 rounded-full transition-colors" data-category="backlog" title="Add task" style="color:var(--cf-text-muted);border:none;background:transparent;cursor:pointer;"
+              onmouseover="this.style.color='var(--cf-orange)'" onmouseout="this.style.color='var(--cf-text-muted)'">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="task-card-list flex-1 overflow-y-auto p-3 space-y-2" data-category="backlog"></div>
+        </div>
+
       </div>
     </div>
 
   </div><!-- /main card -->
 
+  <!-- ============================================================
+       Task Modal (create / edit)
+       ============================================================ -->
+  <div id="task-modal" class="task-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+    <div class="task-modal-panel corner-brackets" style="background-color: var(--cf-bg-200);">
+      <span class="cb-tl"></span><span class="cb-tr"></span>
+      <span class="cb-bl"></span><span class="cb-br"></span>
+
+      <!-- Modal header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color: var(--cf-border);">
+        <h2 id="task-modal-title" class="text-base font-medium" style="color: var(--cf-text);">New Task</h2>
+        <button id="task-modal-close" class="theme-toggle w-8 h-8" title="Close">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="px-6 py-5 space-y-5 overflow-y-auto" style="max-height: calc(90vh - 140px);">
+
+        <!-- Title -->
+        <div>
+          <label class="task-form-label" for="task-title-input">Title <span style="color:var(--cf-orange)">*</span></label>
+          <input
+            id="task-title-input"
+            type="text"
+            placeholder="What needs to be done?"
+            class="task-form-input w-full"
+            autocomplete="off"
+          >
+        </div>
+
+        <!-- Category + Status row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="task-form-label" for="task-category-select">Category</label>
+            <select id="task-category-select" class="task-form-select w-full">
+              <option value="must-do">Must-Do</option>
+              <option value="maybe" selected>Maybe</option>
+              <option value="backlog">Backlog</option>
+            </select>
+          </div>
+          <div>
+            <label class="task-form-label" for="task-due-date-input">Due Date</label>
+            <input id="task-due-date-input" type="date" class="task-form-input w-full">
+          </div>
+        </div>
+
+        <!-- Tags + Estimate row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="task-form-label">Tags</label>
+            <div class="flex flex-wrap gap-2 mt-1">
+              <label class="task-tag-toggle">
+                <input type="checkbox" value="work"> work
+              </label>
+              <label class="task-tag-toggle">
+                <input type="checkbox" value="personal"> personal
+              </label>
+              <label class="task-tag-toggle">
+                <input type="checkbox" value="low-energy-task"> low-energy
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="task-form-label" for="task-estimate-input">Estimate (min)</label>
+            <input id="task-estimate-input" type="number" min="1" max="480" placeholder="AI will guess…" class="task-form-input w-full">
+          </div>
+        </div>
+
+        <!-- Notes (EasyMDE) -->
+        <div>
+          <label class="task-form-label" for="task-notes-input">Notes</label>
+          <textarea id="task-notes-input" placeholder="Add notes, context, links…" rows="4"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal footer -->
+      <div class="flex items-center justify-between px-6 py-4 border-t gap-3" style="border-color: var(--cf-border); background-color: var(--cf-bg-100);">
+        <button id="task-modal-delete" class="hidden btn-secondary px-4 py-2 text-xs font-medium flex items-center gap-1.5" style="color:var(--cf-error);border-color:var(--cf-error);">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+        </button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button id="task-modal-enrich" class="btn-secondary px-4 py-2 text-xs font-medium flex items-center gap-1.5" title="Re-run AI enrichment">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> AI Enrich
+          </button>
+          <button id="task-modal-cancel" class="btn-secondary px-4 py-2 text-xs font-medium">Cancel</button>
+          <button id="task-modal-save"   class="btn-primary  px-4 py-2 text-xs font-medium">Save Task</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
+  <script src="tasks.js"></script>
 </body>
 </html>

@@ -230,16 +230,16 @@ async function loadArchiveEntry(date) {
 
 function switchTab(tab) {
     if (tab === 'journal') {
-    tabJournal.className = 'tab-active px-6 py-3 text-sm font-semibold';
-    tabArchive.className = 'tab-inactive px-6 py-3 text-sm font-semibold';
-    journalView.classList.remove('hidden');
-    archiveView.classList.add('hidden');
+        tabJournal.className = 'tab-active px-6 py-3 text-sm font-medium transition-colors';
+        tabArchive.className = 'tab-inactive px-6 py-3 text-sm font-medium transition-colors flex items-center gap-1.5';
+        journalView.classList.remove('hidden');
+        archiveView.classList.add('hidden');
     } else {
-    tabJournal.className = 'tab-inactive px-6 py-3 text-sm font-semibold';
-    tabArchive.className = 'tab-active px-6 py-3 text-sm font-semibold';
-    journalView.classList.add('hidden');
-    archiveView.classList.remove('hidden');
-    loadArchive();
+        tabJournal.className = 'tab-inactive px-6 py-3 text-sm font-medium transition-colors';
+        tabArchive.className = 'tab-active px-6 py-3 text-sm font-medium transition-colors flex items-center gap-1.5';
+        journalView.classList.add('hidden');
+        archiveView.classList.remove('hidden');
+        loadArchive();
     }
 }
 
