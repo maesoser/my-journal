@@ -620,6 +620,23 @@ textarea:focus {
   border-left: 1px solid var(--cf-border) !important;
 }
 
+/* Heading sizes — keep them close to body text size */
+#archive-content .CodeMirror .cm-header-1 {
+  font-size: 1.15em !important;
+  line-height: 1.4 !important;
+}
+#archive-content .CodeMirror .cm-header-2 {
+  font-size: 1.05em !important;
+  line-height: 1.4 !important;
+}
+#archive-content .CodeMirror .cm-header-3,
+#archive-content .CodeMirror .cm-header-4,
+#archive-content .CodeMirror .cm-header-5,
+#archive-content .CodeMirror .cm-header-6 {
+  font-size: 1em !important;
+  line-height: 1.4 !important;
+}
+
 /* ============================================================
    Theme Toggle
    ============================================================ */
@@ -1030,6 +1047,25 @@ textarea:focus {
   background-color: var(--cf-bg-200);
   color: var(--cf-text);
   font-family: var(--font-sans);
+}
+
+/* ---- Heading sizes inside the CodeMirror editor ---- */
+/* EasyMDE's default stylesheet makes h1 ~1.625em, h2 ~1.43em, etc.
+   We scale all of them down to sit comfortably with 13px body text. */
+.EasyMDEContainer .CodeMirror .cm-header-1 {
+  font-size: 1.15em;
+  line-height: 1.4;
+}
+.EasyMDEContainer .CodeMirror .cm-header-2 {
+  font-size: 1.05em;
+  line-height: 1.4;
+}
+.EasyMDEContainer .CodeMirror .cm-header-3,
+.EasyMDEContainer .CodeMirror .cm-header-4,
+.EasyMDEContainer .CodeMirror .cm-header-5,
+.EasyMDEContainer .CodeMirror .cm-header-6 {
+  font-size: 1em;
+  line-height: 1.4;
 }
 
 /* ============================================================
