@@ -1086,3 +1086,169 @@ textarea:focus {
 .task-empty-state svg {
   opacity: 0.3;
 }
+
+/* ============================================================
+   Streak Badge (header)
+   ============================================================ */
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--cf-orange);
+  background-color: var(--cf-orange-light);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--cf-orange);
+  cursor: default;
+  animation: streakPop 0.4s var(--ease-button) both;
+}
+
+.streak-badge.hidden {
+  display: none;
+}
+
+.streak-flame {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.streak-label {
+  font-weight: 400;
+  color: var(--cf-text-muted);
+}
+
+/* New-record pulse */
+.streak-badge.streak-record {
+  animation: streakPulse 1s var(--ease-out) 0.3s both;
+}
+
+@keyframes streakPop {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes streakPulse {
+  0%, 100% { box-shadow: none; }
+  50%       { box-shadow: 0 0 0 4px rgba(255, 72, 1, 0.2); }
+}
+
+/* ============================================================
+   Heatmap (archive sidebar)
+   ============================================================ */
+
+.heatmap-section {
+  padding: 12px;
+  background-color: var(--cf-bg-100);
+}
+
+/* Hidden when sidebar is collapsed */
+.archive-sidebar.collapsed .heatmap-section {
+  display: none;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.heatmap-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cf-text-muted);
+}
+
+.heatmap-stats {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--cf-text-subtle);
+}
+
+/* The grid itself — we'll render 52 week-columns × 7 day-rows */
+.heatmap-grid {
+  display: grid;
+  /* 52 columns for weeks, 7 rows for days; cells sized to fit sidebar */
+  grid-template-columns: repeat(52, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  grid-auto-flow: column;     /* fill column by column (Mon→Sun) */
+  gap: 2px;
+  width: 100%;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background-color: var(--cf-bg-300);
+  transition: background-color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+  cursor: default;
+  min-width: 0;
+}
+
+.heatmap-cell.heatmap-written {
+  background-color: var(--cf-orange);
+}
+
+/* Today highlight */
+.heatmap-cell.heatmap-today {
+  outline: 1.5px solid var(--cf-orange);
+  outline-offset: 1px;
+}
+
+.heatmap-cell.heatmap-today.heatmap-written {
+  background-color: var(--cf-orange);
+  outline-color: var(--cf-text);
+}
+
+/* Hover tooltip */
+.heatmap-cell:hover {
+  transform: scale(1.3);
+  z-index: 1;
+  position: relative;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--cf-text-subtle);
+  font-family: var(--font-mono);
+}
+
+.heatmap-legend .heatmap-cell {
+  width: 10px;
+  height: 10px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+/* Tooltip shown via JS title attribute — native tooltip is fine,
+   but we enhance with a custom one for consistency */
+.heatmap-tooltip {
+  position: fixed;
+  z-index: 700;
+  padding: 5px 10px;
+  background: var(--cf-text);
+  color: var(--cf-bg-100);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.heatmap-tooltip.visible {
+  opacity: 1;
+}

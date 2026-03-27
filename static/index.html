@@ -70,6 +70,12 @@
             id="session-id"
             style="color: var(--cf-text-muted);"
           >Session: loading...</span>
+          <!-- Streak badge -->
+          <span id="streak-badge" class="streak-badge hidden" title="Writing streak">
+            <span class="streak-flame">🔥</span>
+            <span id="streak-count">0</span>
+            <span class="streak-label">day streak</span>
+          </span>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -147,6 +153,21 @@
               <i data-lucide="panel-left-close" class="w-4 h-4"></i>
             </button>
           </div>
+          <!-- ---- Heatmap ---- -->
+          <div id="heatmap-section" class="heatmap-section border-b" style="border-color: var(--cf-border);">
+            <div class="heatmap-header">
+              <span class="heatmap-title">Activity</span>
+              <span id="heatmap-stats" class="heatmap-stats"></span>
+            </div>
+            <div id="heatmap-grid" class="heatmap-grid" aria-label="Writing activity heatmap"></div>
+            <div class="heatmap-legend">
+              <span>Less</span>
+              <span class="heatmap-cell" style="background:var(--cf-bg-300);"></span>
+              <span class="heatmap-cell heatmap-written"></span>
+              <span>More</span>
+            </div>
+          </div>
+
           <div class="search-box p-3 border-b" style="border-color: var(--cf-border);">
             <div class="relative">
               <i data-lucide="search" class="search-icon w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--cf-text-muted);"></i>
@@ -371,5 +392,6 @@
 
   <script src="app.js"></script>
   <script src="tasks.js"></script>
+  <script src="streak.js"></script>
 </body>
 </html>
